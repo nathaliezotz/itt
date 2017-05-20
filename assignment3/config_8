@@ -1,0 +1,2 @@
+PARTICIPANT: 8
+TRIALS: ['ADR', 'ANR', 'ADB', 'PNO', 'ANB', 'ADR', 'PNE', 'PDE', 'PDO', 'ADR', 'ANR', 'PDE', 'PDO', 'PNE', 'ADB', 'PNO', 'PNO', 'PDO', 'ANB', 'PDE', 'PDE', 'PDO', 'ADR', 'ANB', 'ANB', 'PDO', 'ADB', 'ANR', 'ADB', 'ANR', 'PNE', 'ANB', 'ADB', 'PNE', 'PDE', 'ADR', 'ANR', 'PNO', 'PNO', 'PNE']
