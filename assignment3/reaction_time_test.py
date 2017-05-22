@@ -1,14 +1,3 @@
-# participant ID
-# shown stimulus (concrete word/color/number/etc.),
-# mental complexity (pre-attentive vs. attentive) of stimulus
-# distraction (yes/no)
-# pressed key
-# whether the correct key was pressed
-# reaction time
-# timestamp
-# all other information you deem important
-
-
 """
 A = Attentive (Even/Odd)
 P = Pre-Attentive (Red/Blue)
@@ -33,9 +22,19 @@ O = Odd
 
 5xPNE f
 5xPNO j
-"""
 
-# ADB ANB PDE PNE
+ADE
+ADO
+
+ANE
+ANO
+
+PDB
+PDR
+
+PNB
+PNR
+"""
 
 
 '''
@@ -50,6 +49,25 @@ Logging (writeLogToFile)
 
 
 '''
+"""
+logging_list = []
+for x in range (0,5):
+    logging_list.append({
+            'id': x,
+            'timestamp': x**16,
+            'stimuli': x**4 - 45*x
+        })
+
+
+with open('testlog.csv','w') as f:
+    writer = csv.DictWriter(f, logging_list[0].keys())
+
+    writer.writeheader()
+
+    for row in logging_list:
+        writer.writerow(row)
+"""
+
 
 import csv
 import os
@@ -57,12 +75,13 @@ import random
 import sys
 import datetime
 from PyQt5 import QtGui, QtWidgets, QtCore
-
+from collections import OrderedDict
 
 class ReactionTimeExperiment(QtWidgets.QWidget):
 
     WIDTH = 960
     HEIGHT = 960
+    CIRCLE_RADIUS = 100
     NUM_SQUARES = 10
     SQUARE_WIDTH = WIDTH / NUM_SQUARES
     SQUARE_HEIGHT = HEIGHT / NUM_SQUARES
@@ -74,16 +93,23 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
         self.initConfig()
 
         self.current_task = -1
-        self.current_state = 'Pause'
+        """
+        possible states:
+        'Start'
+        'Pause'
+        'Trial'
+        'End'
+        """
+        self.current_state = 'Start'
 
-        self.tasks = {'ADB': self.taskADB(),
-                      'ADR': self.taskADR(),
-                      'ANB': self.taskANB(),
-                      'ANR': self.taskANR(),
-                      'PDE': self.taskPDE(),
-                      'PDO': self.taskPDO(),
-                      'PNE': self.taskPNE(),
-                      'PNO': self.taskPNO()}
+        self.tasks = {'ADE': self.taskADE,
+                      'ADO': self.taskADO,
+                      'ANE': self.taskANE,
+                      'ANO': self.taskANO,
+                      'PDB': self.taskPDB,
+                      'PDR': self.taskPDR,
+                      'PNB': self.taskPNB,
+                      'PNR': self.taskPNR}
 
         self.counter = 0
         self.current_trial = None
@@ -91,24 +117,9 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
         self.timer_draw.timeout.connect(self.drawDistraction)
         self.timer_draw.start(self.BLINK_SPEED)
 
-# participant ID
-# shown stimulus (concrete word/color/number/etc.),
-# mental complexity (pre-attentive vs. attentive) of stimulus
-# distraction (yes/no)
-# pressed key
-# whether the correct key was pressed
-# reaction time
-# timestamp
-# all other information you deem important
-        self.logging_dict = {'id': [],
-                             'shown_stimulus': [],
-                             'mental_complexity': [],
-                             'distraction': [],
-                             'pressed_key': [],
-                             'correct_key_pressed': [],
-                             'reaction_time_in_microseconds': [],
-                             'timestamp': [],
-                             }
+        self.log_written_to_file = False
+
+        self.logging_list = []
 
 
     def initUI(self):
@@ -130,48 +141,92 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
 
 
     def drawDistraction(self):
-        # print("DISTRACTION")
+        print(self.current_state)
         self.update()
 
     def drawPauseScreen(self, event, qp):
-        print("draw pause")
         self.current_state = 'Pause'
 
         qp.setFont(QtGui.QFont('Helvetica', 32))
-        qp.drawText(event.rect(), QtCore.Qt.AlignCenter, "PAUSE\n\nPRESS 'SPACE' TO CONTINUE!")
+        qp.drawText(event.rect(), QtCore.Qt.AlignCenter, "PAUSE\n\nPRESS 'SPACE' TO SHOW NEXT STIMULUS!")
         self.update()
+
+    def drawStartScreen(self, event, qp):
+        self.current_state = 'Start'
+
+        qp.setFont(QtGui.QFont('Helvetica', 32))
+        qp.drawText(event.rect(), QtCore.Qt.AlignCenter, "REACTION TIME TEST\n\n\n\n\n\n")
+        qp.drawText(event.rect(), QtCore.Qt.AlignCenter, "\n\n\n\n\n\n\n Press 'SPACE' to start the test!")
+
+        qp.setFont(QtGui.QFont('Helvetica', 16))
+        qp.drawText(event.rect(), QtCore.Qt.AlignCenter, "In the following test you will see 40 Stimuli\nIf you see a BLUE CIRCLE or an EVEN NUMBER you have to press 'F'\nIf you see a RED CIRCLE or an ODD NUMBER you have to press 'J'")
+        self.update()
+
+    def drawEndScreen(self, event, qp):
+        self.current_state = 'End'
+
+        qp.setFont(QtGui.QFont('Helvetica', 32))
+        qp.drawText(event.rect(), QtCore.Qt.AlignCenter, "THANK YOU FOR PARTICIPATING!")
+        self.update()
+
 
     def startNextTask(self):
         print("start next task")
         self.current_task += 1
-        self.current_state = 'Trial'
 
-        self.current_trial = self.trials[self.current_task]
-        self.task_start_time = datetime.datetime.now()
+        if self.current_task < len(self.trials):
+            self.current_state = 'Trial'
 
+            self.current_trial = self.trials[self.current_task]
+            self.task_start_time = datetime.datetime.now()
+            print(self.current_trial)
+        else:
+            self.current_state = 'End'
 
-    def taskADB(self):
+        if self.current_trial[2] == 'E':
+            self.current_number = str(random.choice(range(100, 1000, 2)))
+        elif self.current_trial[2] == 'O':
+            self.current_number = str(random.choice(range(101, 1000, 2)))
         self.update()
 
-    def taskADR(self):
+    def taskADE(self, event, qp):
+        qp.setFont(QtGui.QFont('Helvetica', 48))
+        qp.drawText(event.rect(), QtCore.Qt.AlignCenter, self.current_number)
         self.update()
 
-    def taskANB(self):
+    def taskADO(self, event, qp):
+        qp.setFont(QtGui.QFont('Helvetica', 48))
+        qp.drawText(event.rect(), QtCore.Qt.AlignCenter, self.current_number)
         self.update()
 
-    def taskANR(self):
+    def taskANE(self, event, qp):
+        qp.setFont(QtGui.QFont('Helvetica', 48))
+        qp.drawText(event.rect(), QtCore.Qt.AlignCenter, self.current_number)
         self.update()
 
-    def taskPDE(self):
+    def taskANO(self, event, qp):
+        qp.setFont(QtGui.QFont('Helvetica', 48))
+        qp.drawText(event.rect(), QtCore.Qt.AlignCenter, self.current_number)
         self.update()
 
-    def taskPDO(self):
+    def taskPDB(self, event, qp):
+        qp.setBrush(QtGui.QColor(0, 0, 255))
+        qp.drawEllipse(self.WIDTH/2 - self.CIRCLE_RADIUS, self.HEIGHT/2 - self.CIRCLE_RADIUS, self.CIRCLE_RADIUS*2, self.CIRCLE_RADIUS*2)
         self.update()
 
-    def taskPNE(self):
+    def taskPDR(self, event, qp):
+        qp.setBrush(QtGui.QColor(255, 0, 0))
+        qp.drawEllipse(self.WIDTH/2 - self.CIRCLE_RADIUS, self.HEIGHT/2 - self.CIRCLE_RADIUS, self.CIRCLE_RADIUS*2, self.CIRCLE_RADIUS*2)
         self.update()
 
-    def taskPNO(self):
+    def taskPNB(self, event, qp):
+        qp.setBrush(QtGui.QColor(0, 0, 255))
+        qp.drawEllipse(self.WIDTH/2 - self.CIRCLE_RADIUS, self.HEIGHT/2 - self.CIRCLE_RADIUS, self.CIRCLE_RADIUS*2, self.CIRCLE_RADIUS*2)
+        self.update()
+
+    def taskPNR(self, event, qp):
+        qp.setBrush(QtGui.QColor(255, 0, 0))
+        qp.drawEllipse(self.WIDTH/2 - self.CIRCLE_RADIUS, self.HEIGHT/2 - self.CIRCLE_RADIUS, self.CIRCLE_RADIUS*2, self.CIRCLE_RADIUS*2)
         self.update()
 
     def handleInput(self, key):
@@ -179,89 +234,81 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
         self.current_state = 'Pause'
         self.update()
 
-        self.logging_dict['id'].append(self.participant_id)
-        self.logging_dict['shown_stimulus'].append(self.current_trial[2])
-        self.logging_dict['mental_complexity'].append(self.current_trial[0])
-        self.logging_dict['distraction'].append('yes' if self.current_trial[1] == 'D' else 'no')
         self.timedelta = self.task_end_time - self.task_start_time
-        self.logging_dict['reaction_time_in_microseconds'].append((self.timedelta.seconds * 1000000 + self.timedelta.microseconds))
-        self.logging_dict['timestamp'].append(int(self.task_end_time.timestamp()))
-        self.logging_dict['pressed_key'].append(key.text())
-        # self.current_trial = self.trials[self.current_task]
+
+        logging_dict = OrderedDict([
+            ('id', self.participant_id),
+            ('shown_stimulus', self.current_trial[2]),
+            ('mental_complexity', self.current_trial[0]),
+            ('distraction', 'yes' if self.current_trial[1] == 'D' else 'no'),
+            ('pressed_key', key),
+            ('correct_key_pressed', None),
+            ('reaction_time_in_microseconds', (self.timedelta.seconds * 1000000 + self.timedelta.microseconds)),
+            ('timestamp', int(self.task_end_time.timestamp()))
+        ])
+
         if self.current_trial in ['ADB', 'ANB', 'PDE', 'PNE'] and key == QtCore.Qt.Key_F:
-            self.logging_dict['correct_key_pressed'].append('true')
+            logging_dict['correct_key_pressed'] = 'true'
         elif self.current_trial in ['ADR', 'ANR', 'PDO', 'PNO'] and key == QtCore.Qt.Key_J:
-            self.logging_dict['correct_key_pressed'].append('true')
+            logging_dict['correct_key_pressed'] = 'true'
         else:
-            self.logging_dict['correct_key_pressed'].append('false')
+            logging_dict['correct_key_pressed'] = 'false'
+
+        self.logging_list.append(logging_dict)
+
+        print("appended to list")
 
     def writeLogToFile(self):
-        """
-
-        check logging indexing and maybe different method!!!
-
-
-        """
-
-
         filepath = 'reaction_time_test_log.csv'
         log_file_exists = os.path.isfile(filepath)
-        print(log_file_exists)
-        with open(filepath, 'a') as log_file:
-            w = csv.DictWriter(log_file, self.logging_dict.keys())
+
+        with open(filepath, 'a') as f:
+            writer = csv.DictWriter(f, list(self.logging_list[0].keys()))
+
             if not log_file_exists:
-                w.writeheader()
-
-
-            for x in range(0, len(self.logging_dict['timestamp'])):
-                current_row = ''
-                for key in self.logging_dict.keys():
-                    if x == 0:
-                        current_row += self.logging_dict[key][x]
-                    else:
-                        current_row += ',{}'.format(str(self.logging_dict[key][x]))
-
-
-            # w.writerows(self.logging_dict)
+                writer.writeheader()
+            writer.writerows(self.logging_list)
+        self.log_written_to_file = True
 
     def keyPressEvent(self, event):
-        print(event.key())
-
-        if event.key() == QtCore.Qt.Key_S:
-            print(self.logging_dict)
-            self.writeLogToFile()
-        if self.current_state == "Pause":
+        if self.current_state == 'Start':
+            if event.key() == QtCore.Qt.Key_Space:
+                self.current_state = 'Pause'
+        elif self.current_state == 'Pause':
             if event.key() == QtCore.Qt.Key_Space:
                 self.startNextTask()
-
-        elif self.current_state == "Trial":
+        elif self.current_state == 'Trial':
             if event.key() == QtCore.Qt.Key_F:
                 self.handleInput(QtCore.Qt.Key_F)
             elif event.key() == QtCore.Qt.Key_J:
                 self.handleInput(QtCore.Qt.Key_J)
 
-
     def paintEvent(self, event):
         qp = QtGui.QPainter()
         qp.begin(self)
 
-        print(event)
-        print(self.current_state)
-        print(self.trials[self.current_task])
-
-        if self.current_state == 'Pause':
+        if self.current_state == 'Start':
+            self.drawStartScreen(event, qp)
+        elif self.current_state == 'End':
+            self.drawEndScreen(event, qp)
+        elif self.current_state == 'Pause':
             self.drawPauseScreen(event, qp)
-
         elif self.current_state == 'Trial':
-            print(self.current_trial)
             if 'D' in self.current_trial:
                 for x in range(self.NUM_SQUARES):
                     for y in range(self.NUM_SQUARES):
                         qp.setBrush(QtGui.QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
                         self.rect = QtCore.QRect(x*self.SQUARE_WIDTH, y*self.SQUARE_HEIGHT, self.SQUARE_WIDTH, self.SQUARE_HEIGHT)
-                        qp.drawRect(self.rect)
+                        if not (y > 2 and y < 7):
+                            qp.drawRect(self.rect)
+
+            self.tasks[self.current_trial](event, qp)
 
         qp.end()
+
+    def closeEvent(self, event):
+        if not self.log_written_to_file and self.current_task > 0:
+            self.writeLogToFile()
 
 
 def main():

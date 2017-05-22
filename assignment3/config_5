@@ -1,2 +1,2 @@
 PARTICIPANT: 5
-TRIALS: ['ANB', 'ADB', 'ANB', 'ADR', 'ANR', 'PNO', 'ADR', 'ADB', 'ADR', 'ADB', 'ANB', 'PDO', 'PNO', 'PDE', 'PNO', 'PNO', 'ADR', 'PDO', 'PNE', 'ANR', 'PDE', 'PNE', 'ANB', 'PNO', 'PNE', 'ADR', 'PDE', 'PDO', 'ADB', 'PDO', 'PNE', 'PDO', 'PDE', 'PDE', 'ADB', 'ANR', 'ANB', 'PNE', 'ANR', 'ANR']
+TRIALS: ['PDR', 'ADO', 'PNB', 'PDR', 'ADE', 'PDB', 'ANO', 'ANE', 'PNB', 'PDB', 'PNR', 'PNR', 'PNB', 'PNR', 'PDB', 'ADO', 'ANO', 'ANE', 'ADE', 'ADE', 'PDB', 'PNR', 'PDB', 'ANE', 'PDR', 'ADE', 'ADO', 'PDR', 'ADO', 'PDR', 'PNB', 'ANE', 'ANO', 'ANE', 'PNR', 'ADE', 'ANO', 'ANO', 'ADO', 'PNB']

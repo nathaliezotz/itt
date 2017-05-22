@@ -6,14 +6,15 @@ def createConfigFiles(num_files):
     stimuli = []
 
     for x in range(5):
-        stimuli.append('ADB')
-        stimuli.append('ADR')
-        stimuli.append('ANB')
-        stimuli.append('ANR')
-        stimuli.append('PDE')
-        stimuli.append('PDO')
-        stimuli.append('PNE')
-        stimuli.append('PNO')
+        stimuli.append('ADE')
+        stimuli.append('ADO')
+        stimuli.append('ANE')
+        stimuli.append('ANO')
+        stimuli.append('PDB')
+        stimuli.append('PDR')
+        stimuli.append('PNB')
+        stimuli.append('PNR')
+
 
     for x in range(1, int(num_files)+1):
         print(x)
