@@ -1,3 +1,11 @@
+import csv
+import os
+import random
+import sys
+import datetime
+from PyQt5 import QtGui, QtWidgets, QtCore
+from collections import OrderedDict
+
 """
 A = Attentive (Even/Odd)
 P = Pre-Attentive (Red/Blue)
@@ -37,46 +45,6 @@ PNR
 """
 
 
-'''
-TODO:
-nicht das ganze fenster mit blinkenden quadraten vollmachen sondenr in der mitte etwas platz lassen?
-
-start taskXXX x 8
-
-pause screen (drawPause)
-Handle Input
-Logging (writeLogToFile)
-
-
-'''
-"""
-logging_list = []
-for x in range (0,5):
-    logging_list.append({
-            'id': x,
-            'timestamp': x**16,
-            'stimuli': x**4 - 45*x
-        })
-
-
-with open('testlog.csv','w') as f:
-    writer = csv.DictWriter(f, logging_list[0].keys())
-
-    writer.writeheader()
-
-    for row in logging_list:
-        writer.writerow(row)
-"""
-
-
-import csv
-import os
-import random
-import sys
-import datetime
-from PyQt5 import QtGui, QtWidgets, QtCore
-from collections import OrderedDict
-
 class ReactionTimeExperiment(QtWidgets.QWidget):
 
     WIDTH = 960
@@ -93,6 +61,7 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
         self.initConfig()
 
         self.current_task = -1
+
         """
         possible states:
         'Start'
@@ -116,11 +85,8 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
         self.timer_draw = QtCore.QTimer(self)
         self.timer_draw.timeout.connect(self.drawDistraction)
         self.timer_draw.start(self.BLINK_SPEED)
-
         self.log_written_to_file = False
-
         self.logging_list = []
-
 
     def initUI(self):
         # setGeometry(int posx, int posy, int w, int h)
@@ -138,7 +104,6 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
                 elif line.startswith('TRIALS'):
                     print(line)
                     self.trials = line.split('[')[1][:-2].replace(" ", "").replace("'", "").split(",")
-
 
     def drawDistraction(self):
         print(self.current_state)
@@ -159,7 +124,10 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
         qp.drawText(event.rect(), QtCore.Qt.AlignCenter, "\n\n\n\n\n\n\n Press 'SPACE' to start the test!")
 
         qp.setFont(QtGui.QFont('Helvetica', 16))
-        qp.drawText(event.rect(), QtCore.Qt.AlignCenter, "In the following test you will see 40 Stimuli\nIf you see a BLUE CIRCLE or an EVEN NUMBER you have to press 'F'\nIf you see a RED CIRCLE or an ODD NUMBER you have to press 'J'")
+        qp.drawText(event.rect(), QtCore.Qt.AlignCenter,
+                    "In the following test you will see 40 Stimuli\n"
+                    "If you see a BLUE CIRCLE or an EVEN NUMBER you have to press 'F'\n"
+                    "If you see a RED CIRCLE or an ODD NUMBER you have to press 'J'")
         self.update()
 
     def drawEndScreen(self, event, qp):
@@ -168,7 +136,6 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
         qp.setFont(QtGui.QFont('Helvetica', 32))
         qp.drawText(event.rect(), QtCore.Qt.AlignCenter, "THANK YOU FOR PARTICIPATING!")
         self.update()
-
 
     def startNextTask(self):
         print("start next task")
@@ -211,22 +178,26 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
 
     def taskPDB(self, event, qp):
         qp.setBrush(QtGui.QColor(0, 0, 255))
-        qp.drawEllipse(self.WIDTH/2 - self.CIRCLE_RADIUS, self.HEIGHT/2 - self.CIRCLE_RADIUS, self.CIRCLE_RADIUS*2, self.CIRCLE_RADIUS*2)
+        qp.drawEllipse(self.WIDTH / 2 - self.CIRCLE_RADIUS, self.HEIGHT / 2 - self.CIRCLE_RADIUS,
+                       self.CIRCLE_RADIUS * 2, self.CIRCLE_RADIUS * 2)
         self.update()
 
     def taskPDR(self, event, qp):
         qp.setBrush(QtGui.QColor(255, 0, 0))
-        qp.drawEllipse(self.WIDTH/2 - self.CIRCLE_RADIUS, self.HEIGHT/2 - self.CIRCLE_RADIUS, self.CIRCLE_RADIUS*2, self.CIRCLE_RADIUS*2)
+        qp.drawEllipse(self.WIDTH / 2 - self.CIRCLE_RADIUS, self.HEIGHT / 2 - self.CIRCLE_RADIUS,
+                       self.CIRCLE_RADIUS * 2, self.CIRCLE_RADIUS * 2)
         self.update()
 
     def taskPNB(self, event, qp):
         qp.setBrush(QtGui.QColor(0, 0, 255))
-        qp.drawEllipse(self.WIDTH/2 - self.CIRCLE_RADIUS, self.HEIGHT/2 - self.CIRCLE_RADIUS, self.CIRCLE_RADIUS*2, self.CIRCLE_RADIUS*2)
+        qp.drawEllipse(self.WIDTH / 2 - self.CIRCLE_RADIUS, self.HEIGHT / 2 - self.CIRCLE_RADIUS,
+                       self.CIRCLE_RADIUS * 2, self.CIRCLE_RADIUS * 2)
         self.update()
 
     def taskPNR(self, event, qp):
         qp.setBrush(QtGui.QColor(255, 0, 0))
-        qp.drawEllipse(self.WIDTH/2 - self.CIRCLE_RADIUS, self.HEIGHT/2 - self.CIRCLE_RADIUS, self.CIRCLE_RADIUS*2, self.CIRCLE_RADIUS*2)
+        qp.drawEllipse(self.WIDTH / 2 - self.CIRCLE_RADIUS, self.HEIGHT / 2 - self.CIRCLE_RADIUS,
+                       self.CIRCLE_RADIUS * 2, self.CIRCLE_RADIUS * 2)
         self.update()
 
     def handleInput(self, key):
@@ -247,9 +218,9 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
             ('timestamp', int(self.task_end_time.timestamp()))
         ])
 
-        if self.current_trial in ['ADB', 'ANB', 'PDE', 'PNE'] and key == QtCore.Qt.Key_F:
+        if self.current_trial in ['ADE', 'ANE', 'PDB', 'PNB'] and key == QtCore.Qt.Key_F:
             logging_dict['correct_key_pressed'] = 'true'
-        elif self.current_trial in ['ADR', 'ANR', 'PDO', 'PNO'] and key == QtCore.Qt.Key_J:
+        elif self.current_trial in ['ADO', 'ANO', 'PDR', 'PNR'] and key == QtCore.Qt.Key_J:
             logging_dict['correct_key_pressed'] = 'true'
         else:
             logging_dict['correct_key_pressed'] = 'false'
@@ -259,15 +230,22 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
         print("appended to list")
 
     def writeLogToFile(self):
-        filepath = 'reaction_time_test_log.csv'
-        log_file_exists = os.path.isfile(filepath)
+        filepath_total = 'reaction_time_results.csv'
+        filepath = 'reaction_time_result_' + str(self.participant_id) + '.csv'
+        log_file_exists = os.path.isfile(filepath_total)
 
-        with open(filepath, 'a') as f:
+        with open(filepath_total, 'a') as f:
             writer = csv.DictWriter(f, list(self.logging_list[0].keys()))
 
             if not log_file_exists:
                 writer.writeheader()
             writer.writerows(self.logging_list)
+
+        with open(filepath, 'w') as f:
+            writer = csv.DictWriter(f, list(self.logging_list[0].keys()))
+            writer.writeheader()
+            writer.writerows(self.logging_list)
+
         self.log_written_to_file = True
 
     def keyPressEvent(self, event):
@@ -297,10 +275,12 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
             if 'D' in self.current_trial:
                 for x in range(self.NUM_SQUARES):
                     for y in range(self.NUM_SQUARES):
-                        qp.setBrush(QtGui.QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
-                        self.rect = QtCore.QRect(x*self.SQUARE_WIDTH, y*self.SQUARE_HEIGHT, self.SQUARE_WIDTH, self.SQUARE_HEIGHT)
-                        if not (y > 2 and y < 7):
-                            qp.drawRect(self.rect)
+                        qp.setBrush(
+                            QtGui.QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
+                        self.rect = QtCore.QRect(x * self.SQUARE_WIDTH, y * self.SQUARE_HEIGHT, self.SQUARE_WIDTH,
+                                                 self.SQUARE_HEIGHT)
+                        # if not (y > 2 and y < 7):
+                        qp.drawRect(self.rect)
 
             self.tasks[self.current_trial](event, qp)
 

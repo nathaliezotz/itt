@@ -1,0 +1,10 @@
+id,shown_stimulus,mental_complexity,distraction,pressed_key,correct_key_pressed,reaction_time_in_microseconds,timestamp
+3,O,A,yes,74,true,3065137,1495532467
+3,B,P,no,70,true,359193,1495532468
+3,O,A,no,74,true,472741,1495532469
+3,E,A,no,70,true,516718,1495532469
+3,O,A,no,74,true,500413,1495532470
+3,E,A,no,70,true,593766,1495532471
+3,R,P,no,74,true,757485,1495532472
+3,O,A,no,74,true,657771,1495532472
+3,O,A,yes,74,true,1904617,1495532476

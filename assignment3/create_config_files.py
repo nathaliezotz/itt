@@ -15,7 +15,6 @@ def createConfigFiles(num_files):
         stimuli.append('PNB')
         stimuli.append('PNR')
 
-
     for x in range(1, int(num_files)+1):
         print(x)
         random.shuffle(stimuli)
