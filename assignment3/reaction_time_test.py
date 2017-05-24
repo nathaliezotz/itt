@@ -82,9 +82,11 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
 
         self.counter = 0
         self.current_trial = None
+        # timer for automated blinking while distraction is on
         self.timer_draw = QtCore.QTimer(self)
         self.timer_draw.timeout.connect(self.drawDistraction)
         self.timer_draw.start(self.BLINK_SPEED)
+
         self.log_written_to_file = False
         self.logging_list = []
 
@@ -96,6 +98,7 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
         self.show()
 
     def initConfig(self):
+        # reading settings from config file
         with open(sys.argv[1]) as config_file:
             for line in config_file:
                 if line.startswith('PARTICIPANT'):
@@ -141,15 +144,18 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
         print("start next task")
         self.current_task += 1
 
+        # checking if there are tasks left
         if self.current_task < len(self.trials):
             self.current_state = 'Trial'
 
             self.current_trial = self.trials[self.current_task]
+            # getting timestamp for task start
             self.task_start_time = datetime.datetime.now()
             print(self.current_trial)
         else:
             self.current_state = 'End'
 
+        # getting a random even or odd 3-digit number
         if self.current_trial[2] == 'E':
             self.current_number = str(random.choice(range(100, 1000, 2)))
         elif self.current_trial[2] == 'O':
@@ -201,10 +207,12 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
         self.update()
 
     def handleInput(self, key):
+        # getting timestamp for end of task
         self.task_end_time = datetime.datetime.now()
         self.current_state = 'Pause'
         self.update()
 
+        # calculation the time needed
         self.timedelta = self.task_end_time - self.task_start_time
 
         logging_dict = OrderedDict([
@@ -218,6 +226,7 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
             ('timestamp', int(self.task_end_time.timestamp()))
         ])
 
+        # deciding wheter the correct key was pressed or not
         if self.current_trial in ['ADE', 'ANE', 'PDB', 'PNB'] and key == QtCore.Qt.Key_F:
             logging_dict['correct_key_pressed'] = 'true'
         elif self.current_trial in ['ADO', 'ANO', 'PDR', 'PNR'] and key == QtCore.Qt.Key_J:
@@ -232,8 +241,11 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
     def writeLogToFile(self):
         filepath_total = 'reaction_time_results.csv'
         filepath = 'reaction_time_result_' + str(self.participant_id) + '.csv'
+
+        # checking if file with all experiments exists
         log_file_exists = os.path.isfile(filepath_total)
 
+        # appending to the concatenated file
         with open(filepath_total, 'a') as f:
             writer = csv.DictWriter(f, list(self.logging_list[0].keys()))
 
@@ -241,6 +253,7 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
                 writer.writeheader()
             writer.writerows(self.logging_list)
 
+        # writing to a separate file
         with open(filepath, 'w') as f:
             writer = csv.DictWriter(f, list(self.logging_list[0].keys()))
             writer.writeheader()
@@ -272,6 +285,7 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
         elif self.current_state == 'Pause':
             self.drawPauseScreen(event, qp)
         elif self.current_state == 'Trial':
+            # checking if distraction should be drawn or not
             if 'D' in self.current_trial:
                 for x in range(self.NUM_SQUARES):
                     for y in range(self.NUM_SQUARES):
@@ -287,6 +301,7 @@ class ReactionTimeExperiment(QtWidgets.QWidget):
         qp.end()
 
     def closeEvent(self, event):
+        # checking if log was already written when you close the pyqt app
         if not self.log_written_to_file and self.current_task > 0:
             self.writeLogToFile()
 

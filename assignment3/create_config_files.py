@@ -5,6 +5,7 @@ import random
 def createConfigFiles(num_files):
     stimuli = []
 
+    # each combination is shown 5 times
     for x in range(5):
         stimuli.append('ADE')
         stimuli.append('ADO')
@@ -16,9 +17,9 @@ def createConfigFiles(num_files):
         stimuli.append('PNR')
 
     for x in range(1, int(num_files)+1):
-        print(x)
+        # pseudo random distibution of the 40 combinations
         random.shuffle(stimuli)
-
+        # writing to config file
         with open('config_' + str(x), 'w') as config_file:
             config_file.write('PARTICIPANT: ' + str(x) + '\n')
             config_file.write('TRIALS: ' + str(stimuli))

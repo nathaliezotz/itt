@@ -3,7 +3,6 @@ import statistics
 import collections
 
 
-
 def distraction_vs_nodistraction(in_list):
     dist = []
     no_dist = []
@@ -58,6 +57,7 @@ def errors_distraction_vs_no_distraction(in_list):
     # print("median no dist", statistics.median(no_dist))
     print()
 
+
 def readfile(filepath):
     in_list = []
     with open(filepath, 'r') as csv_file:
@@ -93,4 +93,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
