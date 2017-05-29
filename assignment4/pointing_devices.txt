@@ -1,0 +1,12 @@
+a) Which advantages do direct pointing devices have over indirect pointing devices? Name one use case where using a direct
+pointing device would not make any sense.
+
+Flight Simulator
+
+b) How would you characterize “Shift” based on the classification criteria mentioned in the Wikipedia article?
+
+
+
+c) What is the size of the display used in the study?
+The experiment was conducted on the IPAQ PDA.
+It has a 550 × 730mm, 240 × 320px, display producing an effective resolution of 0.436px/mm.
